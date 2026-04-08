@@ -3,7 +3,7 @@
   "name": "eventflex-backend",
   "builds": [
     {
-      "src": "api/server.js",
+      "src": "api/app.js",
       "use": "@vercel/node"
     }
   ]
