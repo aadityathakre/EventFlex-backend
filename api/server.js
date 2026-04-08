@@ -17,38 +17,23 @@ process.env.REFRESH_TOKEN_EXPIRY = process.env.REFRESH_TOKEN_EXPIRY || "7d";
 process.env.BLOCKCHAIN_ENABLED = process.env.BLOCKCHAIN_ENABLED || "false";
 
 // Initialize database connection
-let dbConnected = false;
+let dbInitialized = false;
 
-const initDB = async () => {
-  if (!dbConnected) {
+const initializeDatabase = async () => {
+  if (!dbInitialized) {
     try {
-      console.log("🔄 Initializing database connection...");
+      console.log("Initializing database...");
       await connectedDB();
-      dbConnected = true;
-      console.log("✅ Database connected successfully");
+      dbInitialized = true;
+      console.log("Database connected successfully");
     } catch (error) {
-      console.error("❌ Database connection failed:", error);
-      throw error;
+      console.error("Database connection failed:", error);
     }
   }
 };
 
-// Vercel serverless function handler
-export default async function handler(req, res) {
-  try {
-    // Initialize database on first request
-    if (!dbConnected) {
-      await initDB();
-    }
-    
-    // Handle the request with Express app
-    return app(req, res);
-  } catch (error) {
-    console.error("❌ Server error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Internal server error",
-      error: error.message
-    });
-  }
-}
+// Export the Express app directly for Vercel
+export default app;
+
+// Initialize database on module load
+initializeDatabase();
