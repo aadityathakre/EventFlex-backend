@@ -23,7 +23,7 @@ app.use(cookieParser());
 // Build CORS origin - allow both localhost and production URLs dynamically
 const allowedOrigins = [
   `http://${process.env.CLIENT_HOST}:${process.env.CLIENT_PORT}`,
-  'https://eventflex.vercel.app',
+  process.env.CLIENT_URL || 'https://eventflex.vercel.app',
   // Additional local development ports
   'http://localhost:3000',
   'http://localhost:5173',
