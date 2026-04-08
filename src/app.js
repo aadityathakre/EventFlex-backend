@@ -52,7 +52,7 @@ app.use(
 );
 
 // Manual preflight handler
-app.options('*', (req, res) => {
+app.options('/*', (req, res) => {
   const origin = req.headers.origin;
   if (allowedOrigins.includes(origin)) {
     res.header('Access-Control-Allow-Origin', origin);
