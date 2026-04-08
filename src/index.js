@@ -21,9 +21,14 @@ process.env.BLOCKCHAIN_ENABLED = process.env.BLOCKCHAIN_ENABLED || "false";
 export default app;
 
 // For Vercel - ensure database connection is established
-connectedDB().catch((err) => {
-  console.error("Database connection failed:", err);
-});
+console.log("Starting server initialization...");
+connectedDB()
+  .then(() => {
+    console.log("✅ Database connected successfully");
+  })
+  .catch((err) => {
+    console.error("❌ Database connection failed:", err);
+  });
 
 // For local development only
 if (process.env.NODE_ENV !== 'production') {
