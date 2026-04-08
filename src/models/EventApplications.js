@@ -15,28 +15,33 @@ const EventApplicationSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+
     organizer: {
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
+
     host: {
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
+
     sender: {
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
       index: true,
     },
+
     receiver: {
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
       index: true,
     },
+
     application_status:
     {
       type: String,

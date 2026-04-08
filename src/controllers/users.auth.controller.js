@@ -160,6 +160,8 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
     }
 
     if (incomingRefreshToken !== user?.refreshToken) {
+      // Clear invalid refresh token from database
+      await User.findByIdAndUpdate(user._id, { $unset: { refreshToken: 1 } });
       throw new ApiError(401, "Refresh token is expired or used!!");
     }
 
@@ -186,6 +188,13 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
         )
       );
   } catch (error) {
+    // If JWT verification fails, clear the refresh token cookie
+    res.clearCookie("refreshToken");
+    res.clearCookie("accessToken");
+    
+    if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+      throw new ApiError(401, "Session expired. Please login again.");
+    }
     throw new ApiError(401, error?.message || "Invalid refresh token");
   }
 });

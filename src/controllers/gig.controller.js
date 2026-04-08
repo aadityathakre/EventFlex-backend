@@ -873,13 +873,10 @@ const getAttendanceHistory = asyncHandler(async (req, res) => {
     .populate("event", "title start_date end_date location")
     .select("-__v");
 
-  if (!history || history.length === 0) {
-    throw new ApiError(404, "No attendance history found");
-  }
-
+  // Return empty array instead of throwing error when no history found
   return res
     .status(200)
-    .json(new ApiResponse(200, history, "Attendance history fetched"));
+    .json(new ApiResponse(200, history || [], "Attendance history fetched"));
 });
 
 // 19. Raise dispute for an event

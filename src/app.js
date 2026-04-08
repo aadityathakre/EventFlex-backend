@@ -33,7 +33,7 @@ app.use(sanitizeInput);
 app.use(rateLimit(1000, 15 * 60 * 1000)); // 1000 requests per 15 minutes
 
 // Apply rate limiting to API routes only
-app.use("/api/", rateLimit(1000, 60 * 1000)); // 100 requests per minute for API
+app.use("/api/", rateLimit(3000, 60 * 1000)); // 100 requests per minute for API
 
 
 // users auth route
