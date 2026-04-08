@@ -20,10 +20,20 @@ app.use((req, res, next) => {
 app.use(express.urlencoded({ extended: true, limit: "32kb" }));
 app.use(cookieParser());
 
-// Build CORS origin - allow all localhost origins for local development
+// Build CORS origin - allow both localhost and production URLs dynamically
+const allowedOrigins = [
+  `http://${process.env.CLIENT_HOST}:${process.env.CLIENT_PORT}`,
+  'https://eventflex.vercel.app',
+  // Additional local development ports
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:5173'
+];
+
 app.use(
   cors({
-    origin: `http://${process.env.CLIENT_HOST}:${process.env.CLIENT_PORT}`,
+    origin: allowedOrigins,
     credentials: true,
   })
 );
