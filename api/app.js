@@ -23,29 +23,25 @@ process.env.BLOCKCHAIN_ENABLED = process.env.BLOCKCHAIN_ENABLED || "false";
 // Create Express app
 const app = express();
 
-// CORS configuration
+// CORS configuration - Explicitly allow production frontend
 const allowedOrigins = [
-  `http://${process.env.CLIENT_HOST}:${process.env.CLIENT_PORT}`,
-  process.env.CLIENT_URL || 'https://eventflex.vercel.app',
+  'https://eventflex.vercel.app',
+  'https://eventflex-frontend.vercel.app',
   'http://localhost:3000',
   'http://localhost:5173',
   'http://127.0.0.1:3000',
-  'http://127.0.0.1:5173'
-];
+  'http://127.0.0.1:5173',
+  process.env.CLIENT_URL
+].filter(Boolean);
 
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl requests)
+      // Allow requests with no origin
       if (!origin) return callback(null, true);
       
-      // Allow all origins in development
-      if (process.env.NODE_ENV !== 'production') {
-        return callback(null, true);
-      }
-      
-      // In production, check against allowed origins
-      if (allowedOrigins.indexOf(origin) !== -1) {
+      // Check allowed origins
+      if (allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
         console.log('CORS blocked origin:', origin);
@@ -53,9 +49,10 @@ app.use(
       }
     },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-    preflightContinue: false
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+    preflightContinue: false,
+    optionsSuccessStatus: 200
   })
 );
 
