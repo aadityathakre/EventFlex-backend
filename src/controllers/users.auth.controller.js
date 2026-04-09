@@ -299,40 +299,66 @@ export const resetPassword = asyncHandler(async (req, res) => {
 // Google OAuth Authentication
 export const googleAuth = asyncHandler(async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email, name, googleId, picture } = req.body;
 
-    let user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json(new ApiResponse(400, "User not found"));
+    if (!email || !googleId) {
+      return res.status(400).json(new ApiResponse(400, "Email and Google ID are required"));
     }
-      const accessToken = user.generateAccessToken();
-      const refreshToken = user.generateRefreshToken();
 
-      user.refreshToken = refreshToken;
+    // Find user by email
+    let user = await User.findOne({ email });
+    
+    // If user doesn't exist, reject login
+    // Registration is manual only
+    if (!user) {
+      return res.status(404).json(new ApiResponse(404, "User not found. Please register first using manual registration."));
+    }
+    
+    // If user exists but doesn't have googleId set, update it with this googleId
+    // This allows first-time Google login to link the account
+    if (!user.googleId) {
+      user.googleId = googleId;
+      if (picture) user.avatar = picture;
       await user.save({ validateBeforeSave: false });
+      console.log(`Google ID linked to existing user: ${email}`);
+    }
+    
+    // Check if googleId matches
+    if (user.googleId !== googleId) {
+      return res.status(401).json(new ApiResponse(401, "Invalid Google account. Please use the Google account linked to this email."));
+    }
 
-      const options = {
-        httpOnly: true,
-        secure: false, // Allow cookies on http://localhost
-        sameSite: 'Lax',
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      };
+    // Generate tokens
+    const accessToken = user.generateAccessToken();
+    const refreshToken = user.generateRefreshToken();
 
-      const loggedInUser = await User.findById(user._id).select(
-        "-password -refreshToken"
+    user.refreshToken = refreshToken;
+    await user.save({ validateBeforeSave: false });
+
+    const options = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    };
+
+    const loggedInUser = await User.findById(user._id).select(
+      "-password -refreshToken"
+    );
+    
+    const msg = `${user.role} logged in successfully via Google`;
+    
+    return res
+      .status(200)
+      .cookie("refreshToken", refreshToken, options)
+      .cookie("accessToken", accessToken, options)
+      .json(
+        new ApiResponse(
+          200,
+          { user: loggedInUser, accessToken, refreshToken },
+          msg
+        )
       );
-      const msg = `${user.role} logged in successfully`;
-      return res
-        .status(200)
-        .cookie("refreshToken", refreshToken, options)
-        .cookie("accessToken", accessToken, options)
-        .json(
-          new ApiResponse(
-            200,
-            { user: loggedInUser, accessToken, refreshToken },
-            msg
-          )
-        );
     
   } catch (error) {
     console.error("Google Auth error:", error);
